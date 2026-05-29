@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Contribution Visualizer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+  .container { max-width: 740px; width: 100%; }
+  h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 28px; }
+  .input-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .input-row input { background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; padding: 8px 12px; font-size: 14px; flex: 1; min-width: 160px; outline: none; }
+  .input-row input:focus { border-color: #238636; }
+  .input-row input::placeholder { color: #484f58; }
+  .input-row button { background: #238636; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .input-row button:hover { background: #2ea043; }
+  .input-row button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .chart-section { margin-bottom: 20px; }
+  .chart-section.hidden { display: none; }
+  .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .chart-title .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot.gh { background: #26a641; }
+  .dot.lc { background: #d29922; }
+  .dot.all { background: #39d353; }
+  .preview-box { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 16px; min-height: 140px; display: flex; align-items: center; justify-content: center; }
+  .preview-box img { width: 100%; display: block; }
+  .preview-box .placeholder { color: #484f58; font-size: 13px; }
+  .preview-box .error { color: #f85149; font-size: 13px; text-align: center; }
+  .preview-box.loading { color: #8b949e; font-size: 13px; }
+  .snippet-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .snippet-box pre { flex: 1; color: #8b949e; font-family: 'Courier New', monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; margin: 0; }
+  .snippet-box button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .snippet-box button:hover { background: #30363d; }
+  .snippet-box button.copied { border-color: #238636; color: #238636; }
+  .footer { margin-top: 32px; color: #484f58; font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>3D Contribution Visualizer</h1>
+  <p class="subtitle">GitHub + LeetCode contributions as isometric 3D charts for your README</p>
+
+  <div class="input-row">
+    <input type="text" id="ghInput" placeholder="GitHub username" autofocus>
+    <input type="text" id="lcInput" placeholder="LeetCode username (optional)">
+    <button id="genBtn">Generate</button>
+  </div>
+
+  <div id="combinedSection" class="chart-section hidden">
+    <div class="chart-title"><span class="dot all"></span> Combined</div>
+    <div class="preview-box" id="combinedPreview"><span class="placeholder"></span></div>
+    <div class="snippet-box" id="combinedSnippet">
+      <pre id="combinedText"></pre>
+      <button class="copyBtn" data-target="combinedText">Copy</button>
+    </div>
+  </div>
+
+  <div id="githubSection" class="chart-section hidden">
+    <div class="chart-title"><span class="dot gh"></span> GitHub only</div>
+    <div class="preview-box" id="githubPreview"><span class="placeholder"></span></div>
+    <div class="snippet-box" id="githubSnippet">
+      <pre id="githubText"></pre>
+      <button class="copyBtn" data-target="githubText">Copy</button>
+    </div>
+  </div>
+
+  <div id="leetcodeSection" class="chart-section hidden">
+    <div class="chart-title"><span class="dot lc"></span> LeetCode only</div>
+    <div class="preview-box" id="leetcodePreview"><span class="placeholder"></span></div>
+    <div class="snippet-box" id="leetcodeSnippet">
+      <pre id="leetcodeText"></pre>
+      <button class="copyBtn" data-target="leetcodeText">Copy</button>
+    </div>
+  </div>
+
+  <p class="footer">Powered by GitHub GraphQL API + LeetCode GraphQL</p>
+</div>
+
+<script>
+const ghInput = document.getElementById('ghInput');
+const lcInput = document.getElementById('lcInput');
+const genBtn = document.getElementById('genBtn');
+
+function baseUrl() {
+  const gh = encodeURIComponent(ghInput.value.trim());
+  const lc = encodeURIComponent(lcInput.value.trim());
+  let url = `/api/contributions?github=${gh}`;
+  if (lc) url += `&lc=${lc}`;
+  return url;
+}
+
+function buildMd(source) {
+  const base = window.location.origin;
+  const gh = ghInput.value.trim();
+  const lc = lcInput.value.trim();
+  let url = `${base}/api/contributions?github=${gh}`;
+  if (lc) url += `&lc=${lc}`;
+  if (source !== 'all') url += `&source=${source}`;
+  const label = source === 'github' ? 'GitHub' : source === 'leetcode' ? 'LeetCode' : 'Contributions';
+  return `![3D ${label}](${url})`;
+}
+
+function loadChart(sectionId, previewId, textId, source) {
+  const section = document.getElementById(sectionId);
+  const preview = document.getElementById(previewId);
+  const text = document.getElementById(textId);
+
+  section.classList.remove('hidden');
+  preview.className = 'preview-box loading';
+  preview.innerHTML = '<span class="placeholder">Loading...</span>';
+
+  const gh = ghInput.value.trim();
+  const lc = lcInput.value.trim();
+  let url = `/api/contributions?github=${gh}`;
+  if (lc) url += `&lc=${lc}`;
+  if (source !== 'all') url += `&source=${source}`;
+
+  const img = document.createElement('img');
+  img.alt = '3D Chart';
+  img.src = url;
+
+  img.onload = () => {
+    preview.innerHTML = '';
+    preview.className = 'preview-box';
+    preview.appendChild(img);
+    text.textContent = buildMd(source);
+  };
+
+  img.onerror = () => {
+    preview.className = 'preview-box';
+    preview.innerHTML = '<span class="error">Could not load chart — check username / token</span>';
+    text.textContent = 'Error loading chart';
+  };
+}
+
+genBtn.addEventListener('click', () => {
+  const gh = ghInput.value.trim();
+  const lc = lcInput.value.trim();
+  if (!gh && !lc) return;
+
+  genBtn.disabled = true;
+  genBtn.textContent = 'Loading...';
+
+  document.querySelectorAll('.chart-section').forEach(el => el.classList.add('hidden'));
+
+  let loaded = 0;
+  const total = lc ? 3 : 1;
+  const onDone = () => { if (++loaded === total) { genBtn.disabled = false; genBtn.textContent = 'Generate'; } };
+
+  loadChart('combinedSection', 'combinedPreview', 'combinedText', 'all');
+  const cImg = document.querySelector('#combinedPreview img');
+  if (cImg) { cImg.onload = onDone; cImg.onerror = onDone; } else setTimeout(onDone, 100);
+
+  loadChart('githubSection', 'githubPreview', 'githubText', 'github');
+  const gImg = document.querySelector('#githubPreview img');
+  if (gImg) { gImg.onload = onDone; gImg.onerror = onDone; } else setTimeout(onDone, 100);
+
+  if (lc) {
+    loadChart('leetcodeSection', 'leetcodePreview', 'leetcodeText', 'leetcode');
+    const lImg = document.querySelector('#leetcodePreview img');
+    if (lImg) { lImg.onload = onDone; lImg.onerror = onDone; } else setTimeout(onDone, 100);
+  }
+});
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.copyBtn');
+  if (!btn) return;
+  const targetId = btn.dataset.target;
+  const textEl = document.getElementById(targetId);
+  if (!textEl) return;
+  try {
+    await navigator.clipboard.writeText(textEl.textContent);
+    btn.textContent = 'Copied!';
+    btn.className = 'copyBtn copied';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.className = 'copyBtn'; }, 2000);
+  } catch {
+    btn.textContent = 'Failed';
+  }
+});
+
+ghInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') genBtn.click(); });
+lcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') genBtn.click(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "3d-contrib-visualizer",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.4",
+    "dotenv": "^17.4.2",
+    "hono": "^4.4.0"
+  }
+}
