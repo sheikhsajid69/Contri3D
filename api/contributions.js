@@ -7,7 +7,7 @@ import { normalize } from '../lib/normalize.js';
 import { renderSVG } from '../lib/renderer.js';
 import { get, set } from '../lib/cache.js';
 
-export const config = { runtime: 'nodejs20.x' };
+export const config = { runtime: 'nodejs' };
 
 const app = new Hono().basePath('/api');
 
