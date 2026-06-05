@@ -67,9 +67,10 @@ export default async function handler(req, res) {
     res.end(svg);
   } catch (err) {
     const msg = err.message;
-    const errorColor = msg.includes('rate limit') ? '#d29922' : '#f85149';
-    const hint = msg.includes('token') ? 'Set GITHUB_TOKEN in environment'
-      : msg.includes('not found') || msg.includes('Could not resolve') ? 'Check username and try again'
+    const lower = msg.toLowerCase();
+    const errorColor = lower.includes('rate limit') ? '#d29922' : '#f85149';
+    const hint = lower.includes('token') ? 'Set GITHUB_TOKEN in Vercel env'
+      : lower.includes('not found') || lower.includes('could not resolve') ? 'Check username and try again'
       : 'Something went wrong';
     const errorSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 100">
   <rect width="520" height="100" fill="#0d1117" rx="12"/>
