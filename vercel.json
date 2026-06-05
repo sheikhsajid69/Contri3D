@@ -1,6 +1,8 @@
 {
+  "functions": {
+    "api/contributions.js": { "runtime": "nodejs@20.x" }
+  },
   "rewrites": [
-    { "source": "/api/contributions", "destination": "/api/contributions.js" },
-    { "source": "/api/ping", "destination": "/api/ping.js" }
+    { "source": "/api/(.*)", "destination": "/api/contributions.js" }
   ]
 }
