@@ -306,7 +306,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Generate chart
         run: |
-          curl -sS "https://contrib3d.vercel.app/api?user=YOUR_USER&amp;lc=$LC_USERNAME&amp;theme=green&amp;size=lg" \
+          curl -sS "https://contrib3d.vercel.app/api/contributions?user=YOUR_USER&amp;lc=$LC_USERNAME&amp;theme=green&amp;size=lg" \
             -o contrib-chart.svg
       - name: Commit if changed
         run: |
@@ -386,7 +386,7 @@ function buildMd() {
   const labels = labelsToggle.dataset.value;
   const color = currentCustomColor;
 
-  let url = `https://contrib3d.vercel.app/api?user=${gh}`;
+  let url = `https://contrib3d.vercel.app/api/contributions?user=${gh}`;
   if (lc) url += `&lc=${lc}`;
   if (waka) url += `&waka=${waka}`;
   url += `&theme=${theme}`;
