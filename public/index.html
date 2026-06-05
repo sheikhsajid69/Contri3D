@@ -3,165 +3,511 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Contribution Visualizer</title>
+<title>contrib3d — 3D Contribution Chart Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
-  .container { max-width: 740px; width: 100%; }
-  h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
-  .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 28px; }
-  .input-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
-  .input-row input { background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; padding: 8px 12px; font-size: 14px; flex: 1; min-width: 160px; outline: none; }
-  .input-row input:focus { border-color: #238636; }
+  body {
+    background: #010409;
+    color: #e6edf3;
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  .container { max-width: 780px; width: 100%; }
+  .logo { text-align: center; margin-bottom: 8px; }
+  .logo svg { height: 28px; }
+  h1 { font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 2px; letter-spacing: -0.3px; }
+  .subtitle { color: #8b949e; font-size: 12px; text-align: center; margin-bottom: 28px; }
+
+  .card { background: #0d1117; border: 1px solid #21262d; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; font-weight: 600; }
+
+  .input-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .input-row input {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    flex: 1;
+    min-width: 140px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input-row input:focus { border-color: #388bfd; }
   .input-row input::placeholder { color: #484f58; }
-  .input-row button { background: #238636; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .input-row button:hover { background: #2ea043; }
-  .input-row button:disabled { opacity: 0.6; cursor: not-allowed; }
-  .chart-section { margin-bottom: 20px; }
-  .chart-section.hidden { display: none; }
-  .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
-  .chart-title .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .dot.gh { background: #26a641; }
-  .dot.lc { background: #d29922; }
-  .dot.all { background: #39d353; }
-  .preview-box { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 16px; min-height: 140px; display: flex; align-items: center; justify-content: center; }
-  .preview-box img { width: 100%; display: block; }
-  .preview-box .placeholder { color: #484f58; font-size: 13px; }
-  .preview-box .error { color: #f85149; font-size: 13px; text-align: center; }
-  .preview-box.loading { color: #8b949e; font-size: 13px; }
-  .snippet-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-  .snippet-box pre { flex: 1; color: #8b949e; font-family: 'Courier New', monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; margin: 0; }
-  .snippet-box button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+
+  .controls-grid { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .control-group { }
+  .control-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600; }
+
+  .theme-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+  .theme-swatch {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid #30363d;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .theme-swatch:hover { border-color: #8b949e; transform: scale(1.1); }
+  .theme-swatch.active { border-color: #e6edf3; transform: scale(1.2); box-shadow: 0 0 0 2px #010409, 0 0 0 4px #e6edf3; }
+  .theme-swatch-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .theme-swatch-label { font-size: 9px; color: #484f58; }
+
+  .custom-color-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .custom-color-row input[type="text"] {
+    background: #161b22; border: 1px solid #30363d; border-radius: 4px;
+    color: #e6edf3; padding: 4px 8px; font-size: 12px; font-family: 'JetBrains Mono', monospace;
+    width: 80px; outline: none;
+  }
+  .custom-color-row input[type="text"]:focus { border-color: #388bfd; }
+  .custom-color-preview { width: 20px; height: 20px; border-radius: 4px; border: 1px solid #30363d; flex-shrink: 0; }
+
+  .radio-group { display: flex; gap: 8px; }
+  .radio-group label {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 12px; color: #8b949e; cursor: pointer;
+    padding: 4px 10px; border: 1px solid #30363d; border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .radio-group label:hover { border-color: #8b949e; }
+  .radio-group input[type="radio"] { display: none; }
+  .radio-group input[type="radio"]:checked + span { color: #e6edf3; }
+  .radio-group label:has(input:checked) { border-color: #238636; background: #23863615; }
+
+  .toggle-group { display: flex; gap: 8px; }
+  .toggle-btn {
+    font-size: 12px; color: #8b949e; cursor: pointer;
+    padding: 4px 12px; border: 1px solid #30363d; border-radius: 6px;
+    background: transparent; font-family: 'JetBrains Mono', monospace;
+    transition: all 0.15s;
+  }
+  .toggle-btn:hover { border-color: #8b949e; }
+  .toggle-btn.active { border-color: #238636; color: #e6edf3; background: #23863615; }
+
+  .gen-row { display: flex; gap: 8px; margin-top: 16px; }
+  .gen-row button {
+    background: #238636; color: #fff; border: none; border-radius: 6px;
+    padding: 9px 28px; font-size: 13px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; transition: background 0.15s; flex: 1;
+  }
+  .gen-row button:hover { background: #2ea043; }
+  .gen-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .gen-row .url-preview {
+    flex: 2; background: #161b22; border: 1px solid #30363d; border-radius: 6px;
+    padding: 9px 14px; font-size: 10px; color: #484f58; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .preview-box {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 16px;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: auto;
+  }
+  .preview-box svg, .preview-box img { max-width: 100%; display: block; }
+  .preview-box .placeholder { color: #484f58; font-size: 12px; text-align: center; }
+  .preview-box .error { color: #f85149; font-size: 12px; text-align: center; max-width: 400px; }
+
+  .tabs { display: flex; gap: 2px; margin-bottom: 0; background: #161b22; border-radius: 8px 8px 0 0; overflow: hidden; }
+  .tab {
+    padding: 8px 16px; font-size: 11px; color: #8b949e; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; border: none; background: transparent;
+    transition: all 0.15s; flex: 1; text-align: center;
+  }
+  .tab:hover { color: #e6edf3; background: #1c2128; }
+  .tab.active { color: #e6edf3; background: #0d1117; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .snippet-box {
+    background: #0d1117; border: 1px solid #21262d; border-top: none;
+    border-radius: 0 0 8px 8px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .snippet-box pre {
+    flex: 1; color: #8b949e; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; white-space: pre-wrap; word-break: break-all; margin: 0;
+    max-height: 100px; overflow-y: auto;
+  }
+  .snippet-box pre::-webkit-scrollbar { width: 4px; }
+  .snippet-box pre::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+  .snippet-box button {
+    background: #21262d; color: #e6edf3; border: 1px solid #30363d;
+    border-radius: 6px; padding: 5px 14px; font-size: 11px;
+    font-family: 'JetBrains Mono', monospace; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: all 0.15s;
+  }
   .snippet-box button:hover { background: #30363d; }
   .snippet-box button.copied { border-color: #238636; color: #238636; }
-  .footer { margin-top: 32px; color: #484f58; font-size: 12px; text-align: center; }
+
+  .footer { margin-top: 32px; color: #484f58; font-size: 10px; text-align: center; }
+  .footer a { color: #58a6ff; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  .badge { display: inline-block; background: #161b22; border: 1px solid #21262d; border-radius: 4px; padding: 1px 6px; font-size: 9px; color: #8b949e; }
+
+  .note { font-size: 10px; color: #484f58; margin-top: 4px; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>3D Contribution Visualizer</h1>
-  <p class="subtitle">GitHub + LeetCode contributions as isometric 3D charts for your README</p>
+  <div class="logo">
+    <svg viewBox="0 0 400 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <text x="200" y="28" text-anchor="middle" fill="#e6edf3" font-family="'JetBrains Mono', monospace" font-size="22" font-weight="600" letter-spacing="-0.5">contrib3d</text>
+    </svg>
+  </div>
+  <p class="subtitle">GitHub + LeetCode + WakaTime → 3D isometric chart for your README</p>
 
-  <div class="input-row">
-    <input type="text" id="ghInput" placeholder="GitHub username" autofocus>
-    <input type="text" id="lcInput" placeholder="LeetCode username (optional)">
+  <div class="card">
+    <div class="card-title">Sources</div>
+    <div class="input-row">
+      <input type="text" id="ghInput" placeholder="GitHub username" autofocus>
+      <input type="text" id="lcInput" placeholder="LeetCode (optional)">
+      <input type="text" id="wakaInput" placeholder="WakaTime (optional)">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Theme</div>
+    <div class="theme-swatches" id="themeSwatches">
+      <div class="theme-swatch-wrap">
+        <div class="theme-swatch active" data-theme="green" style="background:#39d353"></div>
+        <span class="theme-swatch-label">green</span>
+      </div>
+      <div class="theme-swatch-wrap">
+        <div class="theme-swatch" data-theme="blue" style="background:#58a6ff"></div>
+        <span class="theme-swatch-label">blue</span>
+      </div>
+      <div class="theme-swatch-wrap">
+        <div class="theme-swatch" data-theme="purple" style="background:#a371f7"></div>
+        <span class="theme-swatch-label">purple</span>
+      </div>
+      <div class="theme-swatch-wrap">
+        <div class="theme-swatch" data-theme="orange" style="background:#f78166"></div>
+        <span class="theme-swatch-label">orange</span>
+      </div>
+      <div class="theme-swatch-wrap">
+        <div class="theme-swatch" data-theme="red" style="background:#ff7b72"></div>
+        <span class="theme-swatch-label">red</span>
+      </div>
+      <div class="theme-swatch-wrap">
+        <div class="theme-swatch" data-theme="pink" style="background:#f778ba"></div>
+        <span class="theme-swatch-label">pink</span>
+      </div>
+      <div class="theme-swatch-wrap">
+        <div class="theme-swatch" data-theme="mono" style="background:#e6edf3"></div>
+        <span class="theme-swatch-label">mono</span>
+      </div>
+      <div class="theme-swatch-wrap">
+        <div class="theme-swatch" data-theme="dracula" style="background:#50fa7b"></div>
+        <span class="theme-swatch-label">dracula</span>
+      </div>
+    </div>
+    <div class="custom-color-row">
+      <input type="text" id="customColor" placeholder="e.g. 39d353" maxlength="6">
+      <div class="custom-color-preview" id="customColorPreview"></div>
+      <span class="badge">Custom</span>
+      <span class="note" style="margin:0 0 0 auto">Leave empty for selected theme</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Options</div>
+    <div class="controls-grid">
+      <div class="control-group">
+        <div class="control-label">Size</div>
+        <div class="radio-group" id="sizeGroup">
+          <label><input type="radio" name="size" value="sm"><span>sm</span></label>
+          <label><input type="radio" name="size" value="md" checked><span>md</span></label>
+          <label><input type="radio" name="size" value="lg"><span>lg</span></label>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="control-label">Type</div>
+        <div class="radio-group" id="typeGroup">
+          <label><input type="radio" name="type" value="iso" checked><span>iso</span></label>
+          <label><input type="radio" name="type" value="grid"><span>grid</span></label>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="control-label">Animate</div>
+        <div class="toggle-group">
+          <button class="toggle-btn" id="animateToggle" data-value="0">Off</button>
+        </div>
+        <span class="note">For portfolios, not GitHub READMEs</span>
+      </div>
+      <div class="control-group">
+        <div class="control-label">Labels</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="labelsToggle" data-value="1">On</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gen-row">
+    <div class="url-preview" id="urlPreview">Configure options above and generate</div>
     <button id="genBtn">Generate</button>
   </div>
 
-  <div id="combinedSection" class="chart-section hidden">
-    <div class="chart-title"><span class="dot all"></span> Combined</div>
-    <div class="preview-box" id="combinedPreview"><span class="placeholder"></span></div>
-    <div class="snippet-box" id="combinedSnippet">
-      <pre id="combinedText"></pre>
-      <button class="copyBtn" data-target="combinedText">Copy</button>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Preview</div>
+    <div class="preview-box" id="previewBox">
+      <span class="placeholder">Enter a GitHub username and click Generate</span>
     </div>
   </div>
 
-  <div id="githubSection" class="chart-section hidden">
-    <div class="chart-title"><span class="dot gh"></span> GitHub only</div>
-    <div class="preview-box" id="githubPreview"><span class="placeholder"></span></div>
-    <div class="snippet-box" id="githubSnippet">
-      <pre id="githubText"></pre>
-      <button class="copyBtn" data-target="githubText">Copy</button>
+  <div style="margin-top:12px">
+    <div class="tabs" id="snippetTabs">
+      <button class="tab active" data-tab="markdown">Markdown</button>
+      <button class="tab" data-tab="html">HTML</button>
+      <button class="tab" data-tab="action">GitHub Action</button>
+    </div>
+    <div class="tab-content active" id="tabMarkdown">
+      <div class="snippet-box">
+        <pre id="mdSnippet">Generate a chart first</pre>
+        <button class="copyBtn" data-target="mdSnippet">Copy</button>
+      </div>
+    </div>
+    <div class="tab-content" id="tabHtml">
+      <div class="snippet-box">
+        <pre id="htmlSnippet">Generate a chart first</pre>
+        <button class="copyBtn" data-target="htmlSnippet">Copy</button>
+      </div>
+    </div>
+    <div class="tab-content" id="tabAction">
+      <div class="snippet-box">
+        <pre id="actionSnippet">name: Update 3D Chart
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate chart
+        run: |
+          curl -sS "https://contrib3d.vercel.app/api?user=YOUR_USER&amp;lc=$LC_USERNAME&amp;theme=green&amp;size=lg" \
+            -o contrib-chart.svg
+      - name: Commit if changed
+        run: |
+          git config user.name  "contrib3d-bot"
+          git config user.email "bot@contrib3d.app"
+          git add contrib-chart.svg
+          git diff --staged --quiet || git commit -m "chore: refresh 3D contribution chart"
+          git push</pre>
+        <button class="copyBtn" data-target="actionSnippet">Copy</button>
+      </div>
     </div>
   </div>
 
-  <div id="leetcodeSection" class="chart-section hidden">
-    <div class="chart-title"><span class="dot lc"></span> LeetCode only</div>
-    <div class="preview-box" id="leetcodePreview"><span class="placeholder"></span></div>
-    <div class="snippet-box" id="leetcodeSnippet">
-      <pre id="leetcodeText"></pre>
-      <button class="copyBtn" data-target="leetcodeText">Copy</button>
-    </div>
-  </div>
-
-  <p class="footer">Powered by GitHub GraphQL API + LeetCode GraphQL</p>
+  <p class="footer">
+    contrib3d — <a href="https://github.com/sajid/contrib3d">GitHub</a> ·
+    Powered by GitHub GraphQL API · LeetCode GraphQL · WakaTime REST API
+  </p>
 </div>
 
 <script>
 const ghInput = document.getElementById('ghInput');
 const lcInput = document.getElementById('lcInput');
+const wakaInput = document.getElementById('wakaInput');
 const genBtn = document.getElementById('genBtn');
+const previewBox = document.getElementById('previewBox');
+const urlPreview = document.getElementById('urlPreview');
+const mdSnippet = document.getElementById('mdSnippet');
+const htmlSnippet = document.getElementById('htmlSnippet');
+const customColorInput = document.getElementById('customColor');
+const customColorPreview = document.getElementById('customColorPreview');
+const animateToggle = document.getElementById('animateToggle');
+const labelsToggle = document.getElementById('labelsToggle');
 
-function baseUrl() {
+let currentTheme = 'green';
+let currentCustomColor = '';
+
+function getSelectedValue(groupId) {
+  const checked = document.querySelector(`#${groupId} input[type="radio"]:checked`);
+  return checked ? checked.value : 'md';
+}
+
+function buildUrl() {
+  const base = window.location.origin;
   const gh = encodeURIComponent(ghInput.value.trim());
   const lc = encodeURIComponent(lcInput.value.trim());
-  let url = `/api/contributions?github=${gh}`;
+  const waka = encodeURIComponent(wakaInput.value.trim());
+  const theme = currentCustomColor && currentTheme === 'custom' ? 'custom' : currentTheme;
+  const size = getSelectedValue('sizeGroup');
+  const type = getSelectedValue('typeGroup');
+  const animate = animateToggle.dataset.value;
+  const labels = labelsToggle.dataset.value;
+  const color = currentCustomColor;
+
+  let url = `${base}/api/contributions?user=${gh}`;
   if (lc) url += `&lc=${lc}`;
+  if (waka) url += `&waka=${waka}`;
+  url += `&theme=${theme}`;
+  if (color) url += `&color=${color}`;
+  url += `&size=${size}&type=${type}&animate=${animate}&labels=${labels}`;
   return url;
 }
 
-function buildMd(source) {
-  const base = window.location.origin;
+function updateUrlPreview() {
   const gh = ghInput.value.trim();
-  const lc = lcInput.value.trim();
-  let url = `${base}/api/contributions?github=${gh}`;
-  if (lc) url += `&lc=${lc}`;
-  if (source !== 'all') url += `&source=${source}`;
-  const label = source === 'github' ? 'GitHub' : source === 'leetcode' ? 'LeetCode' : 'Contributions';
-  return `![3D ${label}](${url})`;
+  if (!gh) { urlPreview.textContent = 'Enter a GitHub username to see URL'; return; }
+  urlPreview.textContent = buildUrl();
 }
 
-function loadChart(sectionId, previewId, textId, source) {
-  const section = document.getElementById(sectionId);
-  const preview = document.getElementById(previewId);
-  const text = document.getElementById(textId);
-
-  section.classList.remove('hidden');
-  preview.className = 'preview-box loading';
-  preview.innerHTML = '<span class="placeholder">Loading...</span>';
-
+function buildMd() {
   const gh = ghInput.value.trim();
   const lc = lcInput.value.trim();
-  let url = `/api/contributions?github=${gh}`;
+  const waka = wakaInput.value.trim();
+  const theme = currentCustomColor && currentTheme === 'custom' ? 'custom' : currentTheme;
+  const size = getSelectedValue('sizeGroup');
+  const type = getSelectedValue('typeGroup');
+  const animate = animateToggle.dataset.value;
+  const labels = labelsToggle.dataset.value;
+  const color = currentCustomColor;
+
+  let url = `https://contrib3d.vercel.app/api?user=${gh}`;
   if (lc) url += `&lc=${lc}`;
-  if (source !== 'all') url += `&source=${source}`;
+  if (waka) url += `&waka=${waka}`;
+  url += `&theme=${theme}`;
+  if (color) url += `&color=${color}`;
+  url += `&size=${size}&type=${type}&animate=${animate}&labels=${labels}`;
+
+  return `![3D Contributions](${url})`;
+}
+
+function buildHtml() {
+  const md = buildMd();
+  const src = md.match(/\(([^)]+)\)/)[1];
+  return `<img src="${src}" alt="3D Contribution Chart" />`;
+}
+
+const THEME_SWATCH_COLORS = {
+  green: '#39d353', blue: '#58a6ff', purple: '#a371f7',
+  orange: '#f78166', red: '#ff7b72', pink: '#f778ba',
+  mono: '#e6edf3', dracula: '#50fa7b'
+};
+
+document.querySelectorAll('.theme-swatch').forEach(swatch => {
+  swatch.addEventListener('click', () => {
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+    swatch.classList.add('active');
+    currentTheme = swatch.dataset.theme;
+    if (currentCustomColor) {
+      currentCustomColor = '';
+      customColorInput.value = '';
+      customColorPreview.style.background = 'transparent';
+    }
+    updateUrlPreview();
+  });
+});
+
+customColorInput.addEventListener('input', () => {
+  const val = customColorInput.value.trim();
+  if (/^[0-9a-fA-F]{6}$/.test(val)) {
+    currentCustomColor = val;
+    customColorPreview.style.background = `#${val}`;
+    currentTheme = 'custom';
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+  } else {
+    currentCustomColor = '';
+    customColorPreview.style.background = 'transparent';
+  }
+  updateUrlPreview();
+});
+
+document.querySelectorAll('#sizeGroup input, #typeGroup input').forEach(el => {
+  el.addEventListener('change', updateUrlPreview);
+});
+
+animateToggle.addEventListener('click', () => {
+  const val = animateToggle.dataset.value;
+  animateToggle.dataset.value = val === '0' ? '1' : '0';
+  animateToggle.textContent = val === '0' ? 'On' : 'Off';
+  animateToggle.classList.toggle('active');
+  updateUrlPreview();
+});
+
+labelsToggle.addEventListener('click', () => {
+  const val = labelsToggle.dataset.value;
+  labelsToggle.dataset.value = val === '1' ? '0' : '1';
+  labelsToggle.textContent = val === '1' ? 'Off' : 'On';
+  labelsToggle.classList.toggle('active');
+  updateUrlPreview();
+});
+
+ghInput.addEventListener('input', updateUrlPreview);
+lcInput.addEventListener('input', updateUrlPreview);
+wakaInput.addEventListener('input', updateUrlPreview);
+
+function generate() {
+  const gh = ghInput.value.trim();
+  if (!gh) { previewBox.innerHTML = '<span class="placeholder">Enter a GitHub username first</span>'; return; }
+
+  genBtn.disabled = true;
+  genBtn.textContent = 'Generating...';
+  previewBox.innerHTML = '<span class="placeholder">Loading...</span>';
+  mdSnippet.textContent = 'Loading...';
+  htmlSnippet.textContent = 'Loading...';
+
+  const url = buildUrl();
 
   const img = document.createElement('img');
   img.alt = '3D Chart';
   img.src = url;
+  img.style.maxWidth = '100%';
 
   img.onload = () => {
-    preview.innerHTML = '';
-    preview.className = 'preview-box';
-    preview.appendChild(img);
-    text.textContent = buildMd(source);
+    previewBox.innerHTML = '';
+    previewBox.appendChild(img);
+    mdSnippet.textContent = buildMd();
+    htmlSnippet.textContent = buildHtml();
+    genBtn.disabled = false;
+    genBtn.textContent = 'Generate';
   };
 
   img.onerror = () => {
-    preview.className = 'preview-box';
-    preview.innerHTML = '<span class="error">Could not load chart — check username / token</span>';
-    text.textContent = 'Error loading chart';
+    previewBox.innerHTML = '<span class="error">Could not load chart. Check username / server status.</span>';
+    mdSnippet.textContent = 'Error loading chart';
+    htmlSnippet.textContent = 'Error loading chart';
+    genBtn.disabled = false;
+    genBtn.textContent = 'Generate';
   };
 }
 
-genBtn.addEventListener('click', () => {
-  const gh = ghInput.value.trim();
-  const lc = lcInput.value.trim();
-  if (!gh && !lc) return;
+genBtn.addEventListener('click', generate);
 
-  genBtn.disabled = true;
-  genBtn.textContent = 'Loading...';
+ghInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+lcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+wakaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
 
-  document.querySelectorAll('.chart-section').forEach(el => el.classList.add('hidden'));
-
-  let loaded = 0;
-  const total = lc ? 3 : 1;
-  const onDone = () => { if (++loaded === total) { genBtn.disabled = false; genBtn.textContent = 'Generate'; } };
-
-  loadChart('combinedSection', 'combinedPreview', 'combinedText', 'all');
-  const cImg = document.querySelector('#combinedPreview img');
-  if (cImg) { cImg.onload = onDone; cImg.onerror = onDone; } else setTimeout(onDone, 100);
-
-  loadChart('githubSection', 'githubPreview', 'githubText', 'github');
-  const gImg = document.querySelector('#githubPreview img');
-  if (gImg) { gImg.onload = onDone; gImg.onerror = onDone; } else setTimeout(onDone, 100);
-
-  if (lc) {
-    loadChart('leetcodeSection', 'leetcodePreview', 'leetcodeText', 'leetcode');
-    const lImg = document.querySelector('#leetcodePreview img');
-    if (lImg) { lImg.onload = onDone; lImg.onerror = onDone; } else setTimeout(onDone, 100);
-  }
+document.querySelectorAll('#snippetTabs .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#snippetTabs .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
+  });
 });
 
 document.addEventListener('click', async (e) => {
@@ -180,8 +526,7 @@ document.addEventListener('click', async (e) => {
   }
 });
 
-ghInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') genBtn.click(); });
-lcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') genBtn.click(); });
+updateUrlPreview();
 </script>
 </body>
 </html>
