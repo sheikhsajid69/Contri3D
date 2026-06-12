@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contri3D // Absolute Data Display</title>
+  <meta name="description" content="Multi-source isometric 3D activity charting for GitHub, LeetCode, and WakaTime. Generate stunning contribution visualizations for your README.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #ffffff;
+      color: #111111;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Extreme Structural Typographic Framework ── */
+    .container { max-width: 1440px; margin: 0 auto; padding: 48px 24px; }
+
+    .editorial-header {
+      margin-bottom: 48px;
+      border-bottom: 1px solid #e5e5e5;
+      padding-bottom: 24px;
+    }
+    .display-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 8vw, 96px);
+      line-height: 0.9;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      color: #111111;
+    }
+    .subtitle {
+      font-size: 16px;
+      color: #707072;
+      margin-top: 8px;
+      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Configurator Matrix Layout ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .control-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: sticky;
+      top: 24px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #111111;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Controlled Pill Boundary Geometry ── */
+    .input-pill {
+      background-color: #f5f5f5;
+      border: 2px solid transparent;
+      border-radius: 30px;
+      height: 48px;
+      padding: 0 24px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: #111111;
+      outline: none;
+      transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .input-pill:focus {
+      border-color: #111111;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.06);
+    }
+    .input-pill::placeholder { color: #9e9ea0; }
+
+    /* ── Filter Chip System ── */
+    .chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .filter-chip {
+      background-color: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #111111;
+      transition: all 0.2s ease;
+    }
+    .filter-chip:hover {
+      border-color: #111111;
+      background-color: #f5f5f5;
+    }
+    .filter-chip.active {
+      background-color: #111111;
+      color: #ffffff;
+      border-color: #111111;
+    }
+
+    /* ── Options Grid ── */
+    .options-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .option-chip {
+      background-color: #f5f5f5;
+      border: 1px solid transparent;
+      border-radius: 30px;
+      padding: 6px 14px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #707072;
+      transition: all 0.2s ease;
+    }
+    .option-chip:hover { color: #111111; border-color: #e5e5e5; }
+    .option-chip.active {
+      background-color: #111111;
+      color: #ffffff;
+      border-color: #111111;
+    }
+
+    /* ── Absolute Kinetic Trigger Button ── */
+    .btn-action {
+      background-color: #111111;
+      color: #ffffff;
+      border-radius: 30px;
+      height: 48px;
+      padding: 0 32px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      text-transform: uppercase;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      margin-top: 12px;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .btn-action:hover { background-color: #39393b; }
+    .btn-action:active { transform: scale(0.98); }
+    .btn-action:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── Display Workspace ── */
+    .display-workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Zero Radius Flat Target Canvas Frame ── */
+    .preview-stage {
+      background-color: #f5f5f5;
+      border-radius: 0px;
+      padding: 64px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 480px;
+      border: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    .preview-stage.loaded { border-color: #e5e5e5; }
+    .preview-stage img, .preview-stage svg { max-width: 100%; display: block; }
+    .preview-placeholder {
+      color: #707072;
+      text-transform: uppercase;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    .preview-error {
+      color: #d30005;
+      text-transform: uppercase;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* ── Snippet Tabs ── */
+    .snippet-tabs {
+      display: flex;
+      gap: 0;
+      background-color: #f5f5f5;
+      margin-top: 24px;
+    }
+    .snippet-tab {
+      padding: 10px 20px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #707072;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      transition: all 0.15s ease;
+      flex: 1;
+      text-align: center;
+    }
+    .snippet-tab:hover { color: #111111; }
+    .snippet-tab.active {
+      color: #111111;
+      background-color: #ffffff;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Code Output Card ── */
+    .code-output-card {
+      background-color: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-top: none;
+      border-radius: 0px;
+      padding: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .code-output-card pre {
+      flex: 1;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #39393b;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .copy-btn {
+      background-color: #f5f5f5;
+      border: 1px solid #e5e5e5;
+      border-radius: 30px;
+      padding: 6px 16px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #707072;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      text-transform: uppercase;
+    }
+    .copy-btn:hover { border-color: #111111; color: #111111; }
+    .copy-btn.copied { border-color: #111111; color: #111111; background-color: #f5f5f5; }
+
+    /* ── Footer ── */
+    .editorial-footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 12px;
+      color: #9e9ea0;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+    .editorial-footer a {
+      color: #111111;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .editorial-footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .control-sidebar {
+        position: static;
+      }
+      .preview-stage {
+        padding: 32px;
+        min-height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="editorial-header">
+      <h1 class="display-title">CONTRI3D // VISUAL INTENSITY</h1>
+      <p class="subtitle">Multi-source isometric activity charting built for the engineering catalog.</p>
+    </header>
+
+    <main class="dashboard-grid">
+      <section class="control-sidebar">
+        <div class="form-group">
+          <label class="form-label" for="github-user">GitHub Username</label>
+          <input type="text" id="github-user" class="input-pill" placeholder="e.g., sheikhsajid69" autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="leetcode-user">LeetCode Username</label>
+          <input type="text" id="leetcode-user" class="input-pill" placeholder="Optional allocation">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="waka-user">WakaTime User Token</label>
+          <input type="text" id="waka-user" class="input-pill" placeholder="Optional track metrics">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Interface Colorway Profile</label>
+          <div class="chip-container" id="theme-chips">
+            <button class="filter-chip active" data-theme="nike">Nike Studio</button>
+            <button class="filter-chip" data-theme="green">GitHub Classic</button>
+            <button class="filter-chip" data-theme="dracula">Dracula Dark</button>
+            <button class="filter-chip" data-theme="mono">Minimal Stark</button>
+            <button class="filter-chip" data-theme="blue">Deep Blue</button>
+            <button class="filter-chip" data-theme="purple">Ultraviolet</button>
+            <button class="filter-chip" data-theme="orange">Ember</button>
+            <button class="filter-chip" data-theme="red">Crimson</button>
+            <button class="filter-chip" data-theme="pink">Neon Rose</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Chart Size</label>
+          <div class="options-row" id="size-options">
+            <button class="option-chip" data-value="sm">SM</button>
+            <button class="option-chip active" data-value="md">MD</button>
+            <button class="option-chip" data-value="lg">LG</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Render Type</label>
+          <div class="options-row" id="type-options">
+            <button class="option-chip active" data-value="iso">Isometric</button>
+            <button class="option-chip" data-value="grid">Flat Grid</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Display Options</label>
+          <div class="options-row">
+            <button class="option-chip active" id="labels-toggle" data-value="1">Labels On</button>
+            <button class="option-chip" id="animate-toggle" data-value="0">Animate Off</button>
+          </div>
+        </div>
+
+        <button class="btn-action" id="trigger-build">Generate Render</button>
+      </section>
+
+      <section class="display-workspace">
+        <div class="preview-stage" id="rendering-stage">
+          <span class="preview-placeholder">Awaiting generation parameters...</span>
+        </div>
+
+        <div class="snippet-tabs" id="snippet-tabs">
+          <button class="snippet-tab active" data-tab="markdown">Markdown</button>
+          <button class="snippet-tab" data-tab="html">HTML</button>
+          <button class="snippet-tab" data-tab="action">GitHub Action</button>
+        </div>
+
+        <div class="tab-panel active" id="tab-markdown">
+          <div class="code-output-card">
+            <pre id="md-snippet">Generate a chart first</pre>
+            <button class="copy-btn" data-target="md-snippet">Copy</button>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-html">
+          <div class="code-output-card">
+            <pre id="html-snippet">Generate a chart first</pre>
+            <button class="copy-btn" data-target="html-snippet">Copy</button>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-action">
+          <div class="code-output-card">
+            <pre id="action-snippet">name: Update 3D Chart
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate chart
+        run: |
+          curl -sS "https://contri3d.vercel.app/api/contributions?user=YOUR_USER&amp;theme=nike&amp;size=lg" \
+            -o contrib-chart.svg
+      - name: Commit if changed
+        run: |
+          git config user.name  "contrib3d-bot"
+          git config user.email "bot@contrib3d.app"
+          git add contrib-chart.svg
+          git diff --staged --quiet || git commit -m "chore: refresh 3D contribution chart"
+          git push</pre>
+            <button class="copy-btn" data-target="action-snippet">Copy</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="editorial-footer">
+      Contri3D — <a href="https://github.com/sheikhsajid69/contri3d">GitHub</a> ·
+      Powered by GitHub GraphQL · LeetCode GraphQL · WakaTime REST
+    </footer>
+  </div>
+
+  <script>
+    // ── Element References ──
+    const ghInput = document.getElementById('github-user');
+    const lcInput = document.getElementById('leetcode-user');
+    const wakaInput = document.getElementById('waka-user');
+    const genBtn = document.getElementById('trigger-build');
+    const stage = document.getElementById('rendering-stage');
+    const mdSnippet = document.getElementById('md-snippet');
+    const htmlSnippet = document.getElementById('html-snippet');
+    const labelsToggle = document.getElementById('labels-toggle');
+    const animateToggle = document.getElementById('animate-toggle');
+
+    // ── State ──
+    let currentTheme = 'nike';
+    let currentSize = 'md';
+    let currentType = 'iso';
+
+    // ── Theme Chip Switching ──
+    document.getElementById('theme-chips').addEventListener('click', (e) => {
+      const chip = e.target.closest('.filter-chip');
+      if (!chip) return;
+      document.querySelectorAll('#theme-chips .filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentTheme = chip.dataset.theme;
+    });
+
+    // ── Option Chip Groups ──
+    function setupOptionGroup(containerId, setter) {
+      document.getElementById(containerId).addEventListener('click', (e) => {
+        const chip = e.target.closest('.option-chip');
+        if (!chip) return;
+        document.querySelectorAll(`#${containerId} .option-chip`).forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        setter(chip.dataset.value);
+      });
+    }
+    setupOptionGroup('size-options', v => currentSize = v);
+    setupOptionGroup('type-options', v => currentType = v);
+
+    // ── Toggle Buttons ──
+    labelsToggle.addEventListener('click', () => {
+      const on = labelsToggle.dataset.value === '1';
+      labelsToggle.dataset.value = on ? '0' : '1';
+      labelsToggle.textContent = on ? 'Labels Off' : 'Labels On';
+      labelsToggle.classList.toggle('active');
+    });
+    animateToggle.addEventListener('click', () => {
+      const off = animateToggle.dataset.value === '0';
+      animateToggle.dataset.value = off ? '1' : '0';
+      animateToggle.textContent = off ? 'Animate On' : 'Animate Off';
+      animateToggle.classList.toggle('active');
+    });
+
+    // ── URL Builder ──
+    function buildUrl(forEmbed) {
+      const base = forEmbed ? 'https://contri3d.vercel.app' : window.location.origin;
+      const gh = encodeURIComponent(ghInput.value.trim());
+      const lc = encodeURIComponent(lcInput.value.trim());
+      const waka = encodeURIComponent(wakaInput.value.trim());
+      const labels = labelsToggle.dataset.value;
+      const animate = animateToggle.dataset.value;
+
+      let url = `${base}/api/contributions?user=${gh}`;
+      if (lc) url += `&lc=${lc}`;
+      if (waka) url += `&waka=${waka}`;
+      url += `&theme=${currentTheme}&size=${currentSize}&type=${currentType}`;
+      url += `&animate=${animate}&labels=${labels}`;
+      return url;
+    }
+
+    // ── Snippet Tabs ──
+    document.getElementById('snippet-tabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.snippet-tab');
+      if (!tab) return;
+      document.querySelectorAll('.snippet-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+
+    // ── Copy to Clipboard ──
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.copy-btn');
+      if (!btn) return;
+      const pre = document.getElementById(btn.dataset.target);
+      if (!pre) return;
+      try {
+        await navigator.clipboard.writeText(pre.textContent);
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      } catch {
+        btn.textContent = 'Failed';
+      }
+    });
+
+    // ── Generate ──
+    function generate() {
+      const gh = ghInput.value.trim();
+      if (!gh) {
+        stage.innerHTML = '<span class="preview-placeholder">Enter a GitHub username first</span>';
+        return;
+      }
+
+      genBtn.disabled = true;
+      genBtn.textContent = 'Generating...';
+      stage.innerHTML = '<span class="preview-placeholder">Loading...</span>';
+      stage.classList.remove('loaded');
+
+      const url = buildUrl(false);
+      const embedUrl = buildUrl(true);
+
+      const img = document.createElement('img');
+      img.alt = '3D Contribution Chart';
+      img.src = url;
+      img.style.maxWidth = '100%';
+
+      img.onload = () => {
+        stage.innerHTML = '';
+        stage.appendChild(img);
+        stage.classList.add('loaded');
+        mdSnippet.textContent = `![3D Contributions](${embedUrl})`;
+        htmlSnippet.textContent = `<img src="${embedUrl}" alt="3D Contribution Chart" />`;
+        genBtn.disabled = false;
+        genBtn.textContent = 'Generate Render';
+      };
+
+      img.onerror = () => {
+        stage.innerHTML = '<span class="preview-error">Could not load chart. Check username / server status.</span>';
+        mdSnippet.textContent = 'Error loading chart';
+        htmlSnippet.textContent = 'Error loading chart';
+        genBtn.disabled = false;
+        genBtn.textContent = 'Generate Render';
+      };
+    }
+
+    genBtn.addEventListener('click', generate);
+    ghInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+    lcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+    wakaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+  </script>
+</body>
+</html>

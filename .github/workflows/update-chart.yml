@@ -1,0 +1,22 @@
+name: Update 3D Chart
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate chart
+        run: |
+          curl -sS "https://contrib3d.vercel.app/api/contributions?user=${{ github.repository_owner }}&lc=${{ vars.LC_USERNAME }}&waka=${{ vars.WAKA_USERNAME }}&theme=green&size=lg" \
+            -o contrib-chart.svg
+      - name: Commit if changed
+        run: |
+          git config user.name  "contrib3d-bot"
+          git config user.email "bot@contrib3d.app"
+          git add contrib-chart.svg
+          git diff --staged --quiet || git commit -m "chore: refresh 3D contribution chart"
+          git push
