@@ -106,6 +106,13 @@ app.get('/', (c) => {
   return c.html(html);
 });
 
+// Mirror vercel.json rewrite: /api -> /api/contributions for local dev
+app.get('/api', async (c) => {
+  const url = new URL(c.req.url, `http://${c.req.header('host')}`);
+  const newUrl = new URL(`/api/contributions${url.search}`, url.origin);
+  return app.fetch(new Request(newUrl.toString(), c.req.raw));
+});
+
 const PORT = 3000;
 console.log(`Server running at http://localhost:${PORT}`);
 serve({ fetch: app.fetch, port: PORT });

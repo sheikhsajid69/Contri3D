@@ -1,299 +1,427 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>contrib3d — 3D Contribution Chart Generator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #010409;
-    color: #e6edf3;
-    font-family: 'JetBrains Mono', monospace;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
-  }
-  .container { max-width: 780px; width: 100%; }
-  .logo { text-align: center; margin-bottom: 8px; }
-  .logo svg { height: 28px; }
-  h1 { font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 2px; letter-spacing: -0.3px; }
-  .subtitle { color: #8b949e; font-size: 12px; text-align: center; margin-bottom: 28px; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contri3D // Absolute Data Display</title>
+  <meta name="description" content="Multi-source isometric 3D activity charting for GitHub, LeetCode, and WakaTime. Generate stunning contribution visualizations for your README.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #ffffff;
+      color: #111111;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-  .card { background: #0d1117; border: 1px solid #21262d; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
-  .card-title { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; font-weight: 600; }
+    /* ── Extreme Structural Typographic Framework ── */
+    .container { max-width: 1440px; margin: 0 auto; padding: 48px 24px; }
 
-  .input-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .input-row input {
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    color: #e6edf3;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-family: 'JetBrains Mono', monospace;
-    flex: 1;
-    min-width: 140px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .input-row input:focus { border-color: #388bfd; }
-  .input-row input::placeholder { color: #484f58; }
+    .editorial-header {
+      margin-bottom: 48px;
+      border-bottom: 1px solid #e5e5e5;
+      padding-bottom: 24px;
+    }
+    .display-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 8vw, 96px);
+      line-height: 0.9;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      color: #111111;
+    }
+    .subtitle {
+      font-size: 16px;
+      color: #707072;
+      margin-top: 8px;
+      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
 
-  .controls-grid { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
-  .control-group { }
-  .control-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600; }
+    /* ── Configurator Matrix Layout ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .control-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: sticky;
+      top: 24px;
+    }
 
-  .theme-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
-  .theme-swatch {
-    width: 28px; height: 28px; border-radius: 50%;
-    border: 2px solid #30363d;
-    cursor: pointer;
-    transition: all 0.15s;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .theme-swatch:hover { border-color: #8b949e; transform: scale(1.1); }
-  .theme-swatch.active { border-color: #e6edf3; transform: scale(1.2); box-shadow: 0 0 0 2px #010409, 0 0 0 4px #e6edf3; }
-  .theme-swatch-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-  .theme-swatch-label { font-size: 9px; color: #484f58; }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #111111;
+      letter-spacing: 0.5px;
+    }
 
-  .custom-color-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-  .custom-color-row input[type="text"] {
-    background: #161b22; border: 1px solid #30363d; border-radius: 4px;
-    color: #e6edf3; padding: 4px 8px; font-size: 12px; font-family: 'JetBrains Mono', monospace;
-    width: 80px; outline: none;
-  }
-  .custom-color-row input[type="text"]:focus { border-color: #388bfd; }
-  .custom-color-preview { width: 20px; height: 20px; border-radius: 4px; border: 1px solid #30363d; flex-shrink: 0; }
+    /* ── Controlled Pill Boundary Geometry ── */
+    .input-pill {
+      background-color: #f5f5f5;
+      border: 2px solid transparent;
+      border-radius: 30px;
+      height: 48px;
+      padding: 0 24px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: #111111;
+      outline: none;
+      transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .input-pill:focus {
+      border-color: #111111;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.06);
+    }
+    .input-pill::placeholder { color: #9e9ea0; }
 
-  .radio-group { display: flex; gap: 8px; }
-  .radio-group label {
-    display: flex; align-items: center; gap: 4px;
-    font-size: 12px; color: #8b949e; cursor: pointer;
-    padding: 4px 10px; border: 1px solid #30363d; border-radius: 6px;
-    transition: all 0.15s;
-  }
-  .radio-group label:hover { border-color: #8b949e; }
-  .radio-group input[type="radio"] { display: none; }
-  .radio-group input[type="radio"]:checked + span { color: #e6edf3; }
-  .radio-group label:has(input:checked) { border-color: #238636; background: #23863615; }
+    /* ── Filter Chip System ── */
+    .chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .filter-chip {
+      background-color: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #111111;
+      transition: all 0.2s ease;
+    }
+    .filter-chip:hover {
+      border-color: #111111;
+      background-color: #f5f5f5;
+    }
+    .filter-chip.active {
+      background-color: #111111;
+      color: #ffffff;
+      border-color: #111111;
+    }
 
-  .toggle-group { display: flex; gap: 8px; }
-  .toggle-btn {
-    font-size: 12px; color: #8b949e; cursor: pointer;
-    padding: 4px 12px; border: 1px solid #30363d; border-radius: 6px;
-    background: transparent; font-family: 'JetBrains Mono', monospace;
-    transition: all 0.15s;
-  }
-  .toggle-btn:hover { border-color: #8b949e; }
-  .toggle-btn.active { border-color: #238636; color: #e6edf3; background: #23863615; }
+    /* ── Options Grid ── */
+    .options-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .option-chip {
+      background-color: #f5f5f5;
+      border: 1px solid transparent;
+      border-radius: 30px;
+      padding: 6px 14px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #707072;
+      transition: all 0.2s ease;
+    }
+    .option-chip:hover { color: #111111; border-color: #e5e5e5; }
+    .option-chip.active {
+      background-color: #111111;
+      color: #ffffff;
+      border-color: #111111;
+    }
 
-  .gen-row { display: flex; gap: 8px; margin-top: 16px; }
-  .gen-row button {
-    background: #238636; color: #fff; border: none; border-radius: 6px;
-    padding: 9px 28px; font-size: 13px; font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    cursor: pointer; transition: background 0.15s; flex: 1;
-  }
-  .gen-row button:hover { background: #2ea043; }
-  .gen-row button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .gen-row .url-preview {
-    flex: 2; background: #161b22; border: 1px solid #30363d; border-radius: 6px;
-    padding: 9px 14px; font-size: 10px; color: #484f58; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center;
-    font-family: 'JetBrains Mono', monospace;
-  }
+    /* ── Absolute Kinetic Trigger Button ── */
+    .btn-action {
+      background-color: #111111;
+      color: #ffffff;
+      border-radius: 30px;
+      height: 48px;
+      padding: 0 32px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      text-transform: uppercase;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      margin-top: 12px;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .btn-action:hover { background-color: #39393b; }
+    .btn-action:active { transform: scale(0.98); }
+    .btn-action:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
 
-  .preview-box {
-    background: #010409;
-    border: 1px solid #21262d;
-    border-radius: 10px;
-    padding: 16px;
-    min-height: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow-x: auto;
-  }
-  .preview-box svg, .preview-box img { max-width: 100%; display: block; }
-  .preview-box .placeholder { color: #484f58; font-size: 12px; text-align: center; }
-  .preview-box .error { color: #f85149; font-size: 12px; text-align: center; max-width: 400px; }
+    /* ── Display Workspace ── */
+    .display-workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
 
-  .tabs { display: flex; gap: 2px; margin-bottom: 0; background: #161b22; border-radius: 8px 8px 0 0; overflow: hidden; }
-  .tab {
-    padding: 8px 16px; font-size: 11px; color: #8b949e; cursor: pointer;
-    font-family: 'JetBrains Mono', monospace; border: none; background: transparent;
-    transition: all 0.15s; flex: 1; text-align: center;
-  }
-  .tab:hover { color: #e6edf3; background: #1c2128; }
-  .tab.active { color: #e6edf3; background: #0d1117; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+    /* ── Zero Radius Flat Target Canvas Frame ── */
+    .preview-stage {
+      background-color: #f5f5f5;
+      border-radius: 0px;
+      padding: 64px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 480px;
+      border: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    .preview-stage.loaded { border-color: #e5e5e5; }
+    .preview-stage img, .preview-stage svg { max-width: 100%; display: block; }
+    .preview-placeholder {
+      color: #707072;
+      text-transform: uppercase;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    .preview-error {
+      color: #d30005;
+      text-transform: uppercase;
+      font-size: 14px;
+      font-weight: 500;
+    }
 
-  .snippet-box {
-    background: #0d1117; border: 1px solid #21262d; border-top: none;
-    border-radius: 0 0 8px 8px; padding: 10px 14px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .snippet-box pre {
-    flex: 1; color: #8b949e; font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; white-space: pre-wrap; word-break: break-all; margin: 0;
-    max-height: 100px; overflow-y: auto;
-  }
-  .snippet-box pre::-webkit-scrollbar { width: 4px; }
-  .snippet-box pre::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
-  .snippet-box button {
-    background: #21262d; color: #e6edf3; border: 1px solid #30363d;
-    border-radius: 6px; padding: 5px 14px; font-size: 11px;
-    font-family: 'JetBrains Mono', monospace; cursor: pointer; white-space: nowrap; flex-shrink: 0;
-    transition: all 0.15s;
-  }
-  .snippet-box button:hover { background: #30363d; }
-  .snippet-box button.copied { border-color: #238636; color: #238636; }
+    /* ── Snippet Tabs ── */
+    .snippet-tabs {
+      display: flex;
+      gap: 0;
+      background-color: #f5f5f5;
+      margin-top: 24px;
+    }
+    .snippet-tab {
+      padding: 10px 20px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #707072;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      transition: all 0.15s ease;
+      flex: 1;
+      text-align: center;
+    }
+    .snippet-tab:hover { color: #111111; }
+    .snippet-tab.active {
+      color: #111111;
+      background-color: #ffffff;
+    }
 
-  .footer { margin-top: 32px; color: #484f58; font-size: 10px; text-align: center; }
-  .footer a { color: #58a6ff; text-decoration: none; }
-  .footer a:hover { text-decoration: underline; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
-  .badge { display: inline-block; background: #161b22; border: 1px solid #21262d; border-radius: 4px; padding: 1px 6px; font-size: 9px; color: #8b949e; }
+    /* ── Code Output Card ── */
+    .code-output-card {
+      background-color: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-top: none;
+      border-radius: 0px;
+      padding: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .code-output-card pre {
+      flex: 1;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #39393b;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .copy-btn {
+      background-color: #f5f5f5;
+      border: 1px solid #e5e5e5;
+      border-radius: 30px;
+      padding: 6px 16px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #707072;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      text-transform: uppercase;
+    }
+    .copy-btn:hover { border-color: #111111; color: #111111; }
+    .copy-btn.copied { border-color: #111111; color: #111111; background-color: #f5f5f5; }
 
-  .note { font-size: 10px; color: #484f58; margin-top: 4px; }
-</style>
+    /* ── Footer ── */
+    .editorial-footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 12px;
+      color: #9e9ea0;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+    .footer-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    .footer-links a {
+      color: #111111;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+    .footer-links a:hover { color: #d30005; text-decoration: none; }
+    .footer-links span { color: #cacacb; }
+    .footer-credit {
+      color: #707072;
+      font-weight: 500;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .control-sidebar {
+        position: static;
+      }
+      .preview-stage {
+        padding: 32px;
+        min-height: 320px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <div class="logo">
-    <svg viewBox="0 0 400 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <text x="200" y="28" text-anchor="middle" fill="#e6edf3" font-family="'JetBrains Mono', monospace" font-size="22" font-weight="600" letter-spacing="-0.5">contrib3d</text>
-    </svg>
-  </div>
-  <p class="subtitle">GitHub + LeetCode + WakaTime → 3D isometric chart for your README</p>
 
-  <div class="card">
-    <div class="card-title">Sources</div>
-    <div class="input-row">
-      <input type="text" id="ghInput" placeholder="GitHub username" autofocus>
-      <input type="text" id="lcInput" placeholder="LeetCode (optional)">
-      <input type="text" id="wakaInput" placeholder="WakaTime (optional)">
-    </div>
-  </div>
+  <div class="container">
+    <header class="editorial-header">
+      <h1 class="display-title">CONTRI3D // VISUAL INTENSITY</h1>
+      <p class="subtitle">Multi-source isometric activity charting built for the engineering catalog.</p>
+    </header>
 
-  <div class="card">
-    <div class="card-title">Theme</div>
-    <div class="theme-swatches" id="themeSwatches">
-      <div class="theme-swatch-wrap">
-        <div class="theme-swatch active" data-theme="green" style="background:#39d353"></div>
-        <span class="theme-swatch-label">green</span>
-      </div>
-      <div class="theme-swatch-wrap">
-        <div class="theme-swatch" data-theme="blue" style="background:#58a6ff"></div>
-        <span class="theme-swatch-label">blue</span>
-      </div>
-      <div class="theme-swatch-wrap">
-        <div class="theme-swatch" data-theme="purple" style="background:#a371f7"></div>
-        <span class="theme-swatch-label">purple</span>
-      </div>
-      <div class="theme-swatch-wrap">
-        <div class="theme-swatch" data-theme="orange" style="background:#f78166"></div>
-        <span class="theme-swatch-label">orange</span>
-      </div>
-      <div class="theme-swatch-wrap">
-        <div class="theme-swatch" data-theme="red" style="background:#ff7b72"></div>
-        <span class="theme-swatch-label">red</span>
-      </div>
-      <div class="theme-swatch-wrap">
-        <div class="theme-swatch" data-theme="pink" style="background:#f778ba"></div>
-        <span class="theme-swatch-label">pink</span>
-      </div>
-      <div class="theme-swatch-wrap">
-        <div class="theme-swatch" data-theme="mono" style="background:#e6edf3"></div>
-        <span class="theme-swatch-label">mono</span>
-      </div>
-      <div class="theme-swatch-wrap">
-        <div class="theme-swatch" data-theme="dracula" style="background:#50fa7b"></div>
-        <span class="theme-swatch-label">dracula</span>
-      </div>
-    </div>
-    <div class="custom-color-row">
-      <input type="text" id="customColor" placeholder="e.g. 39d353" maxlength="6">
-      <div class="custom-color-preview" id="customColorPreview"></div>
-      <span class="badge">Custom</span>
-      <span class="note" style="margin:0 0 0 auto">Leave empty for selected theme</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Options</div>
-    <div class="controls-grid">
-      <div class="control-group">
-        <div class="control-label">Size</div>
-        <div class="radio-group" id="sizeGroup">
-          <label><input type="radio" name="size" value="sm"><span>sm</span></label>
-          <label><input type="radio" name="size" value="md" checked><span>md</span></label>
-          <label><input type="radio" name="size" value="lg"><span>lg</span></label>
+    <main class="dashboard-grid">
+      <section class="control-sidebar">
+        <div class="form-group">
+          <label class="form-label" for="github-user">GitHub Username</label>
+          <input type="text" id="github-user" class="input-pill" placeholder="e.g., sheikhsajid69" autofocus>
         </div>
-      </div>
-      <div class="control-group">
-        <div class="control-label">Type</div>
-        <div class="radio-group" id="typeGroup">
-          <label><input type="radio" name="type" value="iso" checked><span>iso</span></label>
-          <label><input type="radio" name="type" value="grid"><span>grid</span></label>
-        </div>
-      </div>
-      <div class="control-group">
-        <div class="control-label">Animate</div>
-        <div class="toggle-group">
-          <button class="toggle-btn" id="animateToggle" data-value="0">Off</button>
-        </div>
-        <span class="note">For portfolios, not GitHub READMEs</span>
-      </div>
-      <div class="control-group">
-        <div class="control-label">Labels</div>
-        <div class="toggle-group">
-          <button class="toggle-btn active" id="labelsToggle" data-value="1">On</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="gen-row">
-    <div class="url-preview" id="urlPreview">Configure options above and generate</div>
-    <button id="genBtn">Generate</button>
-  </div>
+        <div class="form-group">
+          <label class="form-label" for="leetcode-user">LeetCode Username</label>
+          <input type="text" id="leetcode-user" class="input-pill" placeholder="Optional allocation">
+        </div>
 
-  <div class="card" style="margin-top:16px">
-    <div class="card-title">Preview</div>
-    <div class="preview-box" id="previewBox">
-      <span class="placeholder">Enter a GitHub username and click Generate</span>
-    </div>
-  </div>
+        <div class="form-group">
+          <label class="form-label" for="waka-user">WakaTime User Token</label>
+          <input type="text" id="waka-user" class="input-pill" placeholder="Optional track metrics">
+        </div>
 
-  <div style="margin-top:12px">
-    <div class="tabs" id="snippetTabs">
-      <button class="tab active" data-tab="markdown">Markdown</button>
-      <button class="tab" data-tab="html">HTML</button>
-      <button class="tab" data-tab="action">GitHub Action</button>
-    </div>
-    <div class="tab-content active" id="tabMarkdown">
-      <div class="snippet-box">
-        <pre id="mdSnippet">Generate a chart first</pre>
-        <button class="copyBtn" data-target="mdSnippet">Copy</button>
-      </div>
-    </div>
-    <div class="tab-content" id="tabHtml">
-      <div class="snippet-box">
-        <pre id="htmlSnippet">Generate a chart first</pre>
-        <button class="copyBtn" data-target="htmlSnippet">Copy</button>
-      </div>
-    </div>
-    <div class="tab-content" id="tabAction">
-      <div class="snippet-box">
-        <pre id="actionSnippet">name: Update 3D Chart
+        <div class="form-group">
+          <label class="form-label">Interface Colorway Profile</label>
+          <div class="chip-container" id="theme-chips">
+            <button class="filter-chip active" data-theme="nike">Nike Studio</button>
+            <button class="filter-chip" data-theme="green">GitHub Classic</button>
+            <button class="filter-chip" data-theme="dracula">Dracula Dark</button>
+            <button class="filter-chip" data-theme="mono">Minimal Stark</button>
+            <button class="filter-chip" data-theme="blue">Deep Blue</button>
+            <button class="filter-chip" data-theme="purple">Ultraviolet</button>
+            <button class="filter-chip" data-theme="orange">Ember</button>
+            <button class="filter-chip" data-theme="red">Crimson</button>
+            <button class="filter-chip" data-theme="pink">Neon Rose</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Chart Size</label>
+          <div class="options-row" id="size-options">
+            <button class="option-chip" data-value="sm">SM</button>
+            <button class="option-chip active" data-value="md">MD</button>
+            <button class="option-chip" data-value="lg">LG</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Render Type</label>
+          <div class="options-row" id="type-options">
+            <button class="option-chip active" data-value="iso">Isometric</button>
+            <button class="option-chip" data-value="grid">Flat Grid</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Display Options</label>
+          <div class="options-row">
+            <button class="option-chip active" id="labels-toggle" data-value="1">Labels On</button>
+            <button class="option-chip" id="animate-toggle" data-value="0">Animate Off</button>
+          </div>
+        </div>
+
+        <button class="btn-action" id="trigger-build">Generate Render</button>
+      </section>
+
+      <section class="display-workspace">
+        <div class="preview-stage" id="rendering-stage">
+          <span class="preview-placeholder">Awaiting generation parameters...</span>
+        </div>
+
+        <div class="snippet-tabs" id="snippet-tabs">
+          <button class="snippet-tab active" data-tab="markdown">Markdown</button>
+          <button class="snippet-tab" data-tab="html">HTML</button>
+          <button class="snippet-tab" data-tab="action">GitHub Action</button>
+        </div>
+
+        <div class="tab-panel active" id="tab-markdown">
+          <div class="code-output-card">
+            <pre id="md-snippet">Generate a chart first</pre>
+            <button class="copy-btn" data-target="md-snippet">Copy</button>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-html">
+          <div class="code-output-card">
+            <pre id="html-snippet">Generate a chart first</pre>
+            <button class="copy-btn" data-target="html-snippet">Copy</button>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-action">
+          <div class="code-output-card">
+            <pre id="action-snippet">name: Update 3D Chart
 on:
   schedule:
     - cron: '0 1 * * *'
@@ -306,7 +434,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Generate chart
         run: |
-          curl -sS "https://contrib3d.vercel.app/api/contributions?user=YOUR_USER&amp;lc=$LC_USERNAME&amp;theme=green&amp;size=lg" \
+          curl -sS "https://contri3d.vercel.app/api/contributions?user=YOUR_USER&amp;theme=nike&amp;size=lg" \
             -o contrib-chart.svg
       - name: Commit if changed
         run: |
@@ -315,218 +443,168 @@ jobs:
           git add contrib-chart.svg
           git diff --staged --quiet || git commit -m "chore: refresh 3D contribution chart"
           git push</pre>
-        <button class="copyBtn" data-target="actionSnippet">Copy</button>
+            <button class="copy-btn" data-target="action-snippet">Copy</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="editorial-footer">
+      <div class="footer-links">
+        <a href="https://github.com/sheikhsajid69/Contri3D" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
+        <span>·</span>
+        <a href="https://github.com/sheikhsajid69" target="_blank" rel="noopener noreferrer">Author Profile</a>
+        <span>·</span>
+        <a href="https://twitter.com/sheikhsajid69" target="_blank" rel="noopener noreferrer">Twitter / X</a>
+        <span>·</span>
+        <a href="https://linkedin.com/in/sheikhsajid69" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </div>
-    </div>
+      <div class="footer-credit">
+        Contri3D // Powered by GitHub GraphQL · LeetCode GraphQL · WakaTime REST
+      </div>
+    </footer>
   </div>
 
-  <p class="footer">
-    contrib3d — <a href="https://github.com/sajid/contrib3d">GitHub</a> ·
-    Powered by GitHub GraphQL API · LeetCode GraphQL · WakaTime REST API
-  </p>
-</div>
+  <script>
+    // ── Element References ──
+    const ghInput = document.getElementById('github-user');
+    const lcInput = document.getElementById('leetcode-user');
+    const wakaInput = document.getElementById('waka-user');
+    const genBtn = document.getElementById('trigger-build');
+    const stage = document.getElementById('rendering-stage');
+    const mdSnippet = document.getElementById('md-snippet');
+    const htmlSnippet = document.getElementById('html-snippet');
+    const labelsToggle = document.getElementById('labels-toggle');
+    const animateToggle = document.getElementById('animate-toggle');
 
-<script>
-const ghInput = document.getElementById('ghInput');
-const lcInput = document.getElementById('lcInput');
-const wakaInput = document.getElementById('wakaInput');
-const genBtn = document.getElementById('genBtn');
-const previewBox = document.getElementById('previewBox');
-const urlPreview = document.getElementById('urlPreview');
-const mdSnippet = document.getElementById('mdSnippet');
-const htmlSnippet = document.getElementById('htmlSnippet');
-const customColorInput = document.getElementById('customColor');
-const customColorPreview = document.getElementById('customColorPreview');
-const animateToggle = document.getElementById('animateToggle');
-const labelsToggle = document.getElementById('labelsToggle');
+    // ── State ──
+    let currentTheme = 'nike';
+    let currentSize = 'md';
+    let currentType = 'iso';
 
-let currentTheme = 'green';
-let currentCustomColor = '';
+    // ── Theme Chip Switching ──
+    document.getElementById('theme-chips').addEventListener('click', (e) => {
+      const chip = e.target.closest('.filter-chip');
+      if (!chip) return;
+      document.querySelectorAll('#theme-chips .filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentTheme = chip.dataset.theme;
+    });
 
-function getSelectedValue(groupId) {
-  const checked = document.querySelector(`#${groupId} input[type="radio"]:checked`);
-  return checked ? checked.value : 'md';
-}
-
-function buildUrl() {
-  const base = window.location.origin;
-  const gh = encodeURIComponent(ghInput.value.trim());
-  const lc = encodeURIComponent(lcInput.value.trim());
-  const waka = encodeURIComponent(wakaInput.value.trim());
-  const theme = currentCustomColor && currentTheme === 'custom' ? 'custom' : currentTheme;
-  const size = getSelectedValue('sizeGroup');
-  const type = getSelectedValue('typeGroup');
-  const animate = animateToggle.dataset.value;
-  const labels = labelsToggle.dataset.value;
-  const color = currentCustomColor;
-
-  let url = `${base}/api/contributions?user=${gh}`;
-  if (lc) url += `&lc=${lc}`;
-  if (waka) url += `&waka=${waka}`;
-  url += `&theme=${theme}`;
-  if (color) url += `&color=${color}`;
-  url += `&size=${size}&type=${type}&animate=${animate}&labels=${labels}`;
-  return url;
-}
-
-function updateUrlPreview() {
-  const gh = ghInput.value.trim();
-  if (!gh) { urlPreview.textContent = 'Enter a GitHub username to see URL'; return; }
-  urlPreview.textContent = buildUrl();
-}
-
-function buildMd() {
-  const gh = ghInput.value.trim();
-  const lc = lcInput.value.trim();
-  const waka = wakaInput.value.trim();
-  const theme = currentCustomColor && currentTheme === 'custom' ? 'custom' : currentTheme;
-  const size = getSelectedValue('sizeGroup');
-  const type = getSelectedValue('typeGroup');
-  const animate = animateToggle.dataset.value;
-  const labels = labelsToggle.dataset.value;
-  const color = currentCustomColor;
-
-  let url = `https://contrib3d.vercel.app/api/contributions?user=${gh}`;
-  if (lc) url += `&lc=${lc}`;
-  if (waka) url += `&waka=${waka}`;
-  url += `&theme=${theme}`;
-  if (color) url += `&color=${color}`;
-  url += `&size=${size}&type=${type}&animate=${animate}&labels=${labels}`;
-
-  return `![3D Contributions](${url})`;
-}
-
-function buildHtml() {
-  const md = buildMd();
-  const src = md.match(/\(([^)]+)\)/)[1];
-  return `<img src="${src}" alt="3D Contribution Chart" />`;
-}
-
-const THEME_SWATCH_COLORS = {
-  green: '#39d353', blue: '#58a6ff', purple: '#a371f7',
-  orange: '#f78166', red: '#ff7b72', pink: '#f778ba',
-  mono: '#e6edf3', dracula: '#50fa7b'
-};
-
-document.querySelectorAll('.theme-swatch').forEach(swatch => {
-  swatch.addEventListener('click', () => {
-    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
-    swatch.classList.add('active');
-    currentTheme = swatch.dataset.theme;
-    if (currentCustomColor) {
-      currentCustomColor = '';
-      customColorInput.value = '';
-      customColorPreview.style.background = 'transparent';
+    // ── Option Chip Groups ──
+    function setupOptionGroup(containerId, setter) {
+      document.getElementById(containerId).addEventListener('click', (e) => {
+        const chip = e.target.closest('.option-chip');
+        if (!chip) return;
+        document.querySelectorAll(`#${containerId} .option-chip`).forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        setter(chip.dataset.value);
+      });
     }
-    updateUrlPreview();
-  });
-});
+    setupOptionGroup('size-options', v => currentSize = v);
+    setupOptionGroup('type-options', v => currentType = v);
 
-customColorInput.addEventListener('input', () => {
-  const val = customColorInput.value.trim();
-  if (/^[0-9a-fA-F]{6}$/.test(val)) {
-    currentCustomColor = val;
-    customColorPreview.style.background = `#${val}`;
-    currentTheme = 'custom';
-    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
-  } else {
-    currentCustomColor = '';
-    customColorPreview.style.background = 'transparent';
-  }
-  updateUrlPreview();
-});
+    // ── Toggle Buttons ──
+    labelsToggle.addEventListener('click', () => {
+      const on = labelsToggle.dataset.value === '1';
+      labelsToggle.dataset.value = on ? '0' : '1';
+      labelsToggle.textContent = on ? 'Labels Off' : 'Labels On';
+      labelsToggle.classList.toggle('active');
+    });
+    animateToggle.addEventListener('click', () => {
+      const off = animateToggle.dataset.value === '0';
+      animateToggle.dataset.value = off ? '1' : '0';
+      animateToggle.textContent = off ? 'Animate On' : 'Animate Off';
+      animateToggle.classList.toggle('active');
+    });
 
-document.querySelectorAll('#sizeGroup input, #typeGroup input').forEach(el => {
-  el.addEventListener('change', updateUrlPreview);
-});
+    // ── URL Builder ──
+    function buildUrl(forEmbed) {
+      const base = forEmbed ? 'https://contri3d.vercel.app' : window.location.origin;
+      const gh = encodeURIComponent(ghInput.value.trim());
+      const lc = encodeURIComponent(lcInput.value.trim());
+      const waka = encodeURIComponent(wakaInput.value.trim());
+      const labels = labelsToggle.dataset.value;
+      const animate = animateToggle.dataset.value;
 
-animateToggle.addEventListener('click', () => {
-  const val = animateToggle.dataset.value;
-  animateToggle.dataset.value = val === '0' ? '1' : '0';
-  animateToggle.textContent = val === '0' ? 'On' : 'Off';
-  animateToggle.classList.toggle('active');
-  updateUrlPreview();
-});
+      let url = `${base}/api/contributions?user=${gh}`;
+      if (lc) url += `&lc=${lc}`;
+      if (waka) url += `&waka=${waka}`;
+      url += `&theme=${currentTheme}&size=${currentSize}&type=${currentType}`;
+      url += `&animate=${animate}&labels=${labels}`;
+      return url;
+    }
 
-labelsToggle.addEventListener('click', () => {
-  const val = labelsToggle.dataset.value;
-  labelsToggle.dataset.value = val === '1' ? '0' : '1';
-  labelsToggle.textContent = val === '1' ? 'Off' : 'On';
-  labelsToggle.classList.toggle('active');
-  updateUrlPreview();
-});
+    // ── Snippet Tabs ──
+    document.getElementById('snippet-tabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.snippet-tab');
+      if (!tab) return;
+      document.querySelectorAll('.snippet-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
 
-ghInput.addEventListener('input', updateUrlPreview);
-lcInput.addEventListener('input', updateUrlPreview);
-wakaInput.addEventListener('input', updateUrlPreview);
+    // ── Copy to Clipboard ──
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.copy-btn');
+      if (!btn) return;
+      const pre = document.getElementById(btn.dataset.target);
+      if (!pre) return;
+      try {
+        await navigator.clipboard.writeText(pre.textContent);
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      } catch {
+        btn.textContent = 'Failed';
+      }
+    });
 
-function generate() {
-  const gh = ghInput.value.trim();
-  if (!gh) { previewBox.innerHTML = '<span class="placeholder">Enter a GitHub username first</span>'; return; }
+    // ── Generate ──
+    function generate() {
+      const gh = ghInput.value.trim();
+      if (!gh) {
+        stage.innerHTML = '<span class="preview-placeholder">Enter a GitHub username first</span>';
+        return;
+      }
 
-  genBtn.disabled = true;
-  genBtn.textContent = 'Generating...';
-  previewBox.innerHTML = '<span class="placeholder">Loading...</span>';
-  mdSnippet.textContent = 'Loading...';
-  htmlSnippet.textContent = 'Loading...';
+      genBtn.disabled = true;
+      genBtn.textContent = 'Generating...';
+      stage.innerHTML = '<span class="preview-placeholder">Loading...</span>';
+      stage.classList.remove('loaded');
 
-  const url = buildUrl();
+      const url = buildUrl(false);
+      const embedUrl = buildUrl(true);
 
-  const img = document.createElement('img');
-  img.alt = '3D Chart';
-  img.src = url;
-  img.style.maxWidth = '100%';
+      const img = document.createElement('img');
+      img.alt = '3D Contribution Chart';
+      img.src = url;
+      img.style.maxWidth = '100%';
 
-  img.onload = () => {
-    previewBox.innerHTML = '';
-    previewBox.appendChild(img);
-    mdSnippet.textContent = buildMd();
-    htmlSnippet.textContent = buildHtml();
-    genBtn.disabled = false;
-    genBtn.textContent = 'Generate';
-  };
+      img.onload = () => {
+        stage.innerHTML = '';
+        stage.appendChild(img);
+        stage.classList.add('loaded');
+        mdSnippet.textContent = `![3D Contributions](${embedUrl})`;
+        htmlSnippet.textContent = `<img src="${embedUrl}" alt="3D Contribution Chart" />`;
+        genBtn.disabled = false;
+        genBtn.textContent = 'Generate Render';
+      };
 
-  img.onerror = () => {
-    previewBox.innerHTML = '<span class="error">Could not load chart. Check username / server status.</span>';
-    mdSnippet.textContent = 'Error loading chart';
-    htmlSnippet.textContent = 'Error loading chart';
-    genBtn.disabled = false;
-    genBtn.textContent = 'Generate';
-  };
-}
+      img.onerror = () => {
+        stage.innerHTML = '<span class="preview-error">Could not load chart. Check username / server status.</span>';
+        mdSnippet.textContent = 'Error loading chart';
+        htmlSnippet.textContent = 'Error loading chart';
+        genBtn.disabled = false;
+        genBtn.textContent = 'Generate Render';
+      };
+    }
 
-genBtn.addEventListener('click', generate);
-
-ghInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
-lcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
-wakaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
-
-document.querySelectorAll('#snippetTabs .tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('#snippetTabs .tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
-  });
-});
-
-document.addEventListener('click', async (e) => {
-  const btn = e.target.closest('.copyBtn');
-  if (!btn) return;
-  const targetId = btn.dataset.target;
-  const textEl = document.getElementById(targetId);
-  if (!textEl) return;
-  try {
-    await navigator.clipboard.writeText(textEl.textContent);
-    btn.textContent = 'Copied!';
-    btn.className = 'copyBtn copied';
-    setTimeout(() => { btn.textContent = 'Copy'; btn.className = 'copyBtn'; }, 2000);
-  } catch {
-    btn.textContent = 'Failed';
-  }
-});
-
-updateUrlPreview();
-</script>
+    genBtn.addEventListener('click', generate);
+    ghInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+    lcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+    wakaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+  </script>
 </body>
 </html>
