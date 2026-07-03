@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contri3D // Absolute Data Display</title>
   <meta name="description" content="Multi-source isometric 3D activity charting for GitHub, LeetCode, and WakaTime. Generate stunning contribution visualizations for your README.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -286,13 +287,30 @@
       text-transform: uppercase;
       letter-spacing: 0.3px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
     }
-    .editorial-footer a {
+    .footer-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    .footer-links a {
       color: #111111;
       text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+    .footer-links a:hover { color: #d30005; text-decoration: none; }
+    .footer-links span { color: #cacacb; }
+    .footer-credit {
+      color: #707072;
       font-weight: 500;
     }
-    .editorial-footer a:hover { text-decoration: underline; }
 
     /* ── Responsive ── */
     @media (max-width: 860px) {
@@ -432,8 +450,18 @@ jobs:
     </main>
 
     <footer class="editorial-footer">
-      Contri3D — <a href="https://github.com/sheikhsajid69/contri3d">GitHub</a> ·
-      Powered by GitHub GraphQL · LeetCode GraphQL · WakaTime REST
+      <div class="footer-links">
+        <a href="https://github.com/sheikhsajid69/Contri3D" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
+        <span>·</span>
+        <a href="https://github.com/sheikhsajid69" target="_blank" rel="noopener noreferrer">Author Profile</a>
+        <span>·</span>
+        <a href="https://twitter.com/sheikhsajid69" target="_blank" rel="noopener noreferrer">Twitter / X</a>
+        <span>·</span>
+        <a href="https://linkedin.com/in/sheikhsajid69" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      </div>
+      <div class="footer-credit">
+        Contri3D // Powered by GitHub GraphQL · LeetCode GraphQL · WakaTime REST
+      </div>
     </footer>
   </div>
 
